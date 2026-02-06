@@ -1,9 +1,11 @@
 const express = require("express");
+const JobsController = require("./jobs.controller");
 
 const router = express.Router();
 
-router.get("/", (req, res) => {
-  res.json({ message: "Jobs route working" });
-});
+/**
+ * GET /jobs
+ */
+router.get("/", JobsController.getJobs);
 
 module.exports = router;
