@@ -58,6 +58,21 @@ const JobsController = {
       res.status(500).json({ error: "Internal Server Error" });
     }
   },
+
+  /**
+   * PATCH /jobs/:id
+   * Update only provided fields
+   */
+  patchJob: async (req, res) => {
+    try {
+      const job = await JobsService.patchJob(req.params.id, req.body);
+      if (!job) return res.status(404).json({ error: "Job not found or no fields provided" });
+      res.json(job);
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ error: "Internal Server Error" });
+    }
+  },
 };
 
 module.exports = JobsController;
