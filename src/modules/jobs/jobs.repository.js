@@ -1,9 +1,9 @@
 const pool = require("../../db/db");
 
+/**
+ * Repository layer for jobs module
+ */
 const JobsRepository = {
-  /**
-   * Get all jobs with optional pagination
-   */
   getAll: async (offset = 0, limit = 10) => {
     const result = await pool.query(
       "SELECT * FROM jobs ORDER BY created_at DESC OFFSET $1 LIMIT $2",
@@ -12,17 +12,11 @@ const JobsRepository = {
     return result.rows;
   },
 
-  /**
-   * Get a single job by ID
-   */
   getById: async (id) => {
     const result = await pool.query("SELECT * FROM jobs WHERE id = $1", [id]);
     return result.rows[0];
   },
 
-  /**
-   * Insert a new job
-   */
   create: async (job) => {
     const query = `
       INSERT INTO jobs
@@ -49,9 +43,6 @@ const JobsRepository = {
     return result.rows[0];
   },
 
-  /**
-   * Update an existing job
-   */
   update: async (id, job) => {
     const query = `
       UPDATE jobs SET
@@ -80,11 +71,36 @@ const JobsRepository = {
     return result.rows[0];
   },
 
-  /**
-   * Delete a job by ID
-   */
   delete: async (id) => {
     const result = await pool.query("DELETE FROM jobs WHERE id=$1 RETURNING *", [id]);
+    return result.rows[0];
+  },
+
+  /**
+   * Update only the provided fields of a job
+   */
+  updatePartial: async (id, fields) => {
+    const setClauses = [];
+    const values = [];
+    let i = 1;
+
+    for (const key in fields) {
+      setClauses.push(`${key}=$${i}`);
+      values.push(fields[key]);
+      i++;
+    }
+
+    if (setClauses.length === 0) return null;
+
+    const query = `
+      UPDATE jobs
+      SET ${setClauses.join(", ")}
+      WHERE id=$${i}
+      RETURNING *;
+    `;
+    values.push(id);
+
+    const result = await pool.query(query, values);
     return result.rows[0];
   },
 };

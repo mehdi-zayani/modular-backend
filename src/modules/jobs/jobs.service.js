@@ -24,6 +24,13 @@ const JobsService = {
   deleteJob: async (id) => {
     return await JobsRepository.delete(id);
   },
+
+  /**
+   * Update only provided fields
+   */
+  patchJob: async (id, fields) => {
+    return await JobsRepository.updatePartial(id, fields);
+  },
 };
 
 module.exports = JobsService;
