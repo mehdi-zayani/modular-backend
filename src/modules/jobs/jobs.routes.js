@@ -3,9 +3,7 @@ const JobsController = require("./jobs.controller");
 
 const router = express.Router();
 
-/**
- * GET /jobs
- */
 router.get("/", JobsController.getJobs);
+router.post("/", JobsController.createJob);
 
 module.exports = router;

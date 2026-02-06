@@ -1,11 +1,15 @@
 const JobsRepository = require("./jobs.repository");
 
-/**
- * Service layer for jobs
- */
 const JobsService = {
   listJobs: async () => {
     return await JobsRepository.getAll();
+  },
+
+  /**
+   * Create a new job
+   */
+  createJob: async (jobData) => {
+    return await JobsRepository.create(jobData);
   },
 };
 
