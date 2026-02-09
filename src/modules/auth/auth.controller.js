@@ -34,8 +34,8 @@ const AuthController = {
 
       const token = jwt.sign(
         { id: user.id, role: user.role },
-        config.jwtSecret,
-        { expiresIn: "8h" }
+        config.jwt.secret,
+        { expiresIn: config.jwt.expiresIn }
       );
 
       await UsersService.updateLastLogin(user.id);
