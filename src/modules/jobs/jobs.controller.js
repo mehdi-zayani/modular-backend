@@ -1,61 +1,61 @@
 const JobsService = require("./jobs.service");
+const { NotFoundError } = require("../../errors");
 
 /**
  * Controller for jobs endpoints
  */
 const JobsController = {
-  getJobs: async (req, res) => {
+  getJobs: async (req, res, next) => {
     try {
       const page = parseInt(req.query.page) || 1;
       const limit = parseInt(req.query.limit) || 10;
+
       const jobs = await JobsService.listJobs(page, limit);
       res.json(jobs);
     } catch (err) {
-      console.error(err);
-      res.status(500).json({ error: "Internal Server Error" });
+      next(err);
     }
   },
 
-  getJobById: async (req, res) => {
+  getJobById: async (req, res, next) => {
     try {
       const job = await JobsService.getJob(req.params.id);
-      if (!job) return res.status(404).json({ error: "Job not found" });
+      if (!job) throw new NotFoundError("Job not found");
+
       res.json(job);
     } catch (err) {
-      console.error(err);
-      res.status(500).json({ error: "Internal Server Error" });
+      next(err);
     }
   },
 
-  createJob: async (req, res) => {
+  createJob: async (req, res, next) => {
     try {
       const job = await JobsService.createJob(req.body);
       res.status(201).json(job);
     } catch (err) {
-      console.error(err);
-      res.status(500).json({ error: "Internal Server Error" });
+      next(err);
     }
   },
 
-  updateJob: async (req, res) => {
+  updateJob: async (req, res, next) => {
     try {
       const job = await JobsService.updateJob(req.params.id, req.body);
-      if (!job) return res.status(404).json({ error: "Job not found" });
+      if (!job) throw new NotFoundError("Job not found");
+
       res.json(job);
     } catch (err) {
-      console.error(err);
-      res.status(500).json({ error: "Internal Server Error" });
+      next(err);
     }
   },
 
-  deleteJob: async (req, res) => {
+  deleteJob: async (req, res, next) => {
     try {
       const job = await JobsService.deleteJob(req.params.id);
-      if (!job) return res.status(404).json({ error: "Job not found" });
+      if (!job) throw new NotFoundError("Job not found");
+
       res.json({ message: "Job deleted successfully" });
     } catch (err) {
-      console.error(err);
-      res.status(500).json({ error: "Internal Server Error" });
+      next(err);
     }
   },
 
@@ -63,14 +63,18 @@ const JobsController = {
    * PATCH /jobs/:id
    * Update only provided fields
    */
-  patchJob: async (req, res) => {
+  patchJob: async (req, res, next) => {
     try {
       const job = await JobsService.patchJob(req.params.id, req.body);
-      if (!job) return res.status(404).json({ error: "Job not found or no fields provided" });
+      if (!job) {
+        throw new NotFoundError(
+          "Job not found or no fields provided"
+        );
+      }
+
       res.json(job);
     } catch (err) {
-      console.error(err);
-      res.status(500).json({ error: "Internal Server Error" });
+      next(err);
     }
   },
 };
