@@ -38,6 +38,9 @@ const UsersModel = {
     const query = `UPDATE users SET is_active = FALSE, updated_at = NOW() WHERE id = $1 RETURNING id, is_active`;
     const res = await pool.query(query, [id]);
     return res.rows[0];
+  },
+  async query(sql, params) {
+    return pool.query(sql, params);
   }
 };
 
