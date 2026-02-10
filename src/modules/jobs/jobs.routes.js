@@ -1,21 +1,26 @@
 const express = require("express");
-const router = express.Router();
 const JobsController = require("./jobs.controller");
-const authMiddleware = require("../auth/auth.middleware");
 
-/**
- * Jobs routes
- * Public routes for reading jobs
- */
-router.get("/", JobsController.getJobs);          // public
-router.get("/:id", JobsController.getJobById);    // public
+const authenticate = require("../../middleware/auth.middleware");
+const authorizeRoles = require("../../middleware/authorize.middleware");
 
-/**
- * Protected routes
- * Only authenticated users or admin can modify jobs
- */
-router.post("/", authMiddleware(["USER", "ADMIN"]), JobsController.createJob);
-router.patch("/:id", authMiddleware(["USER", "ADMIN"]), JobsController.patchJob);
-router.delete("/:id", authMiddleware(["ADMIN"]), JobsController.deleteJob);
+const router = express.Router();
+
+/* Public */
+router.get("/", JobsController.getJobs);
+router.get("/:id", JobsController.getJobById);
+
+/* Authenticated users */
+router.post("/", authenticate, JobsController.createJob);
+router.put("/:id", authenticate, JobsController.updateJob);
+router.patch("/:id", authenticate, JobsController.patchJob);
+
+/* Admin only */
+router.delete(
+  "/:id",
+  authenticate,
+  authorizeRoles("ADMIN"),
+  JobsController.deleteJob
+);
 
 module.exports = router;
