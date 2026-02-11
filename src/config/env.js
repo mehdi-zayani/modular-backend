@@ -2,6 +2,7 @@ require("dotenv").config();
 
 module.exports = {
   port: process.env.PORT || 3000,
+
   db: {
     host: process.env.POSTGRES_HOST || "localhost",
     port: process.env.POSTGRES_PORT || 5432,
@@ -9,8 +10,9 @@ module.exports = {
     password: process.env.POSTGRES_PASSWORD,
     database: process.env.POSTGRES_DB,
   },
-   jwt: {
+
+  jwt: {
     secret: process.env.JWT_SECRET,
-    expiresIn: process.env.JWT_EXPIRES_IN || "1d",
+    expiresIn: process.env.JWT_EXPIRES_IN || "24h",
   },
 };
