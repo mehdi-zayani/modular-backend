@@ -33,4 +33,18 @@ CREATE TABLE IF NOT EXISTS users (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+-- =========================
+-- Logs table
+-- =========================
+CREATE TABLE IF NOT EXISTS request_logs (
+    id SERIAL PRIMARY KEY,
+    user_id INT REFERENCES users(id) ON DELETE SET NULL,
+    method VARCHAR(10) NOT NULL,
+    path VARCHAR(255) NOT NULL,
+    status_code INT NOT NULL,
+    ip_address VARCHAR(50),
+    user_agent TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
 CREATE UNIQUE INDEX IF NOT EXISTS idx_users_email ON users(email);

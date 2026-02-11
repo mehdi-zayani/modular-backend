@@ -1,6 +1,7 @@
 const UsersService = require("../users/users.service");
 const JobsService = require("../jobs/jobs.service");
 const pool = require("../../db/db");
+const LogsService = require("./logs.service");
 /**
  * Controller for admin statistics endpoints
  */
@@ -62,6 +63,15 @@ const AdminController = {
     try {
       const logins = await UsersService.getRecentLogins(10);
       res.json(logins);
+    } catch (err) {
+      next(err);
+    }
+  },
+  
+  getRequestLogs: async (req, res, next) => {
+    try {
+      const logs = await LogsService.getRecentLogs();
+      res.json({ logs });
     } catch (err) {
       next(err);
     }

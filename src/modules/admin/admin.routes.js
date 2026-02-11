@@ -18,4 +18,7 @@ router.get("/monitor/db", authMiddleware(["ADMIN"]), AdminController.getDbHealth
 // Recent logins
 router.get("/monitor/recent-logins", authMiddleware(["ADMIN"]), AdminController.getRecentLogins);
 
+// Logs endpoint (admin only)
+router.get("/logs", authMiddleware(["ADMIN"]), AdminController.getRequestLogs);
+
 module.exports = router;
