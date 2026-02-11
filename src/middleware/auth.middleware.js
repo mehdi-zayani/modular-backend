@@ -2,30 +2,32 @@ const jwt = require("jsonwebtoken");
 const config = require("../config/env");
 
 /**
- * Verify JWT and attach user to request
+ * Middleware to protect routes with JWT
+ * @param {Array} roles - Optional array of roles allowed
  */
-function authenticate(req, res, next) {
-  try {
-    const header = req.headers.authorization;
+function authMiddleware(roles = []) {
+  return (req, res, next) => {
+    try {
+      const authHeader = req.headers.authorization;
+      if (!authHeader || !authHeader.startsWith("Bearer ")) {
+        return res.status(401).json({ error: "Unauthorized" });
+      }
 
-    if (!header || !header.startsWith("Bearer ")) {
-      return res.status(401).json({
-        error: "Authentication required",
-        code: "AUTH_REQUIRED",
-      });
+      const token = authHeader.split(" ")[1];
+      const decoded = jwt.verify(token, process.env.JWT_SECRET || "your_secret_key");
+
+      req.user = decoded;
+
+      if (roles.length && !roles.includes(decoded.role)) {
+        return res.status(403).json({ error: "Forbidden" });
+      }
+
+      next();
+    } catch (err) {
+      return res.status(401).json({ error: "Invalid or expired token" });
     }
-
-    const token = header.split(" ")[1];
-    const decoded = jwt.verify(token, config.jwt.secret);
-
-    req.user = decoded;
-    next();
-  } catch (err) {
-    return res.status(401).json({
-      error: "Invalid or expired token",
-      code: "INVALID_TOKEN",
-    });
-  }
+  };
 }
 
-module.exports = authenticate;
+module.exports = authMiddleware;
+

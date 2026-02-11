@@ -1,30 +1,20 @@
 const express = require("express");
 const router = express.Router();
-
 const AdminController = require("./admin.controller");
-const authenticate = require("../../middleware/auth.middleware");
-const authorizeRoles = require("../../middleware/authorize.middleware");
+const authMiddleware = require("../../middleware/auth.middleware");
 
-/* Admin-only stats routes */
-router.get(
-  "/stats/users",
-  authenticate,
-  authorizeRoles("ADMIN"),
-  AdminController.usersStats
-);
+// Route test simple
+router.get("/test", authMiddleware(["ADMIN"]), (req, res) => {
+  res.json({ ok: true, user: req.user });
+});
 
-router.get(
-  "/stats/jobs",
-  authenticate,
-  authorizeRoles("ADMIN"),
-  AdminController.jobsStats
-);
+// User stats
+router.get("/stats/users", authMiddleware(["ADMIN"]), AdminController.getUserStats);
 
-router.get(
-  "/stats/logins",
-  authenticate,
-  authorizeRoles("ADMIN"),
-  AdminController.recentLogins
-);
+// Jobs stats
+router.get("/stats/jobs", authMiddleware(["ADMIN"]), AdminController.getJobStats);
+
+// Jobs by type
+router.get("/stats/jobs/type", authMiddleware(["ADMIN"]), AdminController.getJobStatsByType);
 
 module.exports = router;
