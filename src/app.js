@@ -5,10 +5,15 @@ const jobsRoutes = require("./modules/jobs/jobs.routes");
 const { NotFoundError } = require("./errors");
 const authRoutes = require("./modules/auth/auth.routes");
 const adminRoutes = require("./modules/admin/admin.routes");
+const requestLogger = require("./middleware/requestLogger.middleware");
+const loggingMiddleware = require("./middleware/logging.middleware");
 const app = express();
 
 app.use(cors());
 app.use(express.json());
+
+app.use(requestLogger);
+app.use(loggingMiddleware);
 // Auth routes
 app.use("/auth", authRoutes);
 
