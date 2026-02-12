@@ -9,10 +9,21 @@ const router = express.Router();
 
 /**
  * -------------------------
- * Public routes (no auth required)
+ * Public routes (no authentication required)
  * -------------------------
  */
+
+/**
+ * GET /jobs
+ * Public endpoint to list jobs with optional pagination & filters
+ * Query params: page, limit, employment_type, location, remote
+ */
 router.get("/", JobsController.getJobs);
+
+/**
+ * GET /jobs/:id
+ * Retrieve a single job by ID
+ */
 router.get("/:id", JobsController.getJobById);
 
 /**
@@ -20,23 +31,36 @@ router.get("/:id", JobsController.getJobById);
  * Authenticated users routes
  * -------------------------
  */
+
+/**
+ * POST /jobs
+ * Create a new job (any authenticated user)
+ */
 router.post(
   "/",
-  authMiddleware(), // any authenticated user
+  authMiddleware(), 
   validate(jobSchema),
   JobsController.createJob
 );
 
+/**
+ * PUT /jobs/:id
+ * Full update of a job (any authenticated user)
+ */
 router.put(
   "/:id",
-  authMiddleware(), // any authenticated user
+  authMiddleware(),
   validate(jobSchema),
   JobsController.updateJob
 );
 
+/**
+ * PATCH /jobs/:id
+ * Partial update of a job (any authenticated user)
+ */
 router.patch(
   "/:id",
-  authMiddleware(), // any authenticated user
+  authMiddleware(),
   validate(jobSchema),
   JobsController.patchJob
 );
@@ -46,10 +70,15 @@ router.patch(
  * Admin only routes
  * -------------------------
  */
+
+/**
+ * DELETE /jobs/:id
+ * Remove a job (admin only)
+ */
 router.delete(
   "/:id",
-  authMiddleware(), 
-  authorizeRoles("ADMIN"), // only admins
+  authMiddleware(),
+  authorizeRoles("ADMIN"),
   JobsController.deleteJob
 );
 

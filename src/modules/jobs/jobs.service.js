@@ -3,14 +3,19 @@ const pool = require("../../db/db");
 
 /**
  * Service layer for jobs module
+ * Handles business logic for jobs
  */
 const JobsService = {
   /**
-   * List jobs with pagination
+   * List jobs with pagination and optional filters
+   * @param {Object} options
+   * @param {Object} options.filters - optional filters { employment_type, location, status }
+   * @param {number} options.offset - offset for pagination
+   * @param {number} options.limit - number of items per page
+   * @returns {Object} { jobs: [], total: number }
    */
-  listJobs: async (page = 1, limit = 10) => {
-    const offset = (page - 1) * limit;
-    return await JobsRepository.getAll(offset, limit);
+  listJobs: async ({ filters = {}, offset = 0, limit = 10 }) => {
+    return await JobsRepository.getAll({ filters, offset, limit });
   },
 
   /**
@@ -35,17 +40,17 @@ const JobsService = {
   },
 
   /**
-   * Soft delete a job
-   */
-  deleteJob: async (id) => {
-    return await JobsRepository.delete(id);
-  },
-
-  /**
-   * Update only provided fields
+   * Partial update (PATCH) of job fields
    */
   patchJob: async (id, fields) => {
     return await JobsRepository.updatePartial(id, fields);
+  },
+
+  /**
+   * Soft delete a job (admin only)
+   */
+  deleteJob: async (id) => {
+    return await JobsRepository.delete(id);
   },
 
   /**
