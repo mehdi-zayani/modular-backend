@@ -1,6 +1,7 @@
 const UsersModel = require("./users.model");
 const bcrypt = require("bcrypt");
 const pool = require("../../db/db");
+const ROLES = require("../../constants/roles");
 
 /**
  * Users service: business logic for user management
@@ -10,9 +11,19 @@ const UsersService = {
    * Create a new user with hashed password
    */
   async createUser(data) {
-    const hashedPassword = await bcrypt.hash(data.password, 10);
-    return UsersModel.create({ ...data, password: hashedPassword });
-  },
+  const hashedPassword = await bcrypt.hash(data.password, 10);
+
+  const role = Object.values(ROLES).includes(data.role)
+    ? data.role
+    : ROLES.USER;
+
+  return UsersModel.create({
+    ...data,
+    role,
+    password: hashedPassword,
+  });
+}
+,
 
   /**
    * Retrieve user by email
@@ -43,34 +54,49 @@ const UsersService = {
   /**
    * Update user fields (PATCH)
    */
+  /**
+   * Update user fields (PATCH)
+   * Role cannot be modified here (admin endpoint required)
+   */
   async updateUser(id, data) {
+    // Prevent role change via normal update
+    if (data.role) {
+      delete data.role;
+    }
+
     // Hash password if present
     if (data.password) {
       data.password = await bcrypt.hash(data.password, 10);
     }
 
-    // Build dynamic set clause
+    // Build dynamic SET clause
     const fields = [];
     const values = [];
     let i = 1;
+
     for (const key in data) {
       fields.push(`${key} = $${i}`);
       values.push(data[key]);
       i++;
     }
+
+    // Nothing to update
     if (fields.length === 0) return null;
 
     const query = `
-      UPDATE users 
-      SET ${fields.join(", ")}, updated_at = NOW() 
-      WHERE id = $${i} 
+      UPDATE users
+      SET ${fields.join(", ")},
+          updated_at = NOW()
+      WHERE id = $${i}
       RETURNING id, email, full_name, role, is_active, created_at, updated_at
     `;
+
     values.push(id);
 
     const res = await UsersModel.query(query, values);
     return res.rows[0];
   },
+
 
   /**
    * Soft delete (deactivate user)
