@@ -33,6 +33,7 @@ app.use("/jobs", jobsRoutes);
 app.get("/", (req, res) => {
   res.send("Modular Backend running");
 });
+
 // Public health check
 app.use("/health", healthRoutes);
 

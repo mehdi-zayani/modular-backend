@@ -2,14 +2,57 @@ const pool = require("../../db/db");
 
 /**
  * Repository layer for jobs module
+ * Handles direct database queries for jobs
  */
 const JobsRepository = {
-  getAll: async (offset = 0, limit = 10) => {
-    const result = await pool.query(
-      "SELECT * FROM jobs ORDER BY created_at DESC OFFSET $1 LIMIT $2",
-      [offset, limit]
-    );
-    return result.rows;
+  /**
+   * Get all jobs with pagination and optional filters
+   * @param {Object} options
+   * @param {Object} options.filters - { employment_type, location, remote }
+   * @param {number} options.offset
+   * @param {number} options.limit
+   * @returns {Object} { jobs: [], total: number }
+   */
+  getAll: async ({ filters = {}, offset = 0, limit = 10 } = {}) => {
+    const conditions = [];
+    const values = [];
+    let i = 1;
+
+    // Dynamic WHERE clauses
+    if (filters.employment_type) {
+      conditions.push(`employment_type = $${i}`);
+      values.push(filters.employment_type);
+      i++;
+    }
+    if (filters.location) {
+      conditions.push(`location ILIKE $${i}`);
+      values.push(`%${filters.location}%`);
+      i++;
+    }
+    if (typeof filters.remote !== "undefined") {
+      conditions.push(`remote = $${i}`);
+      values.push(filters.remote);
+      i++;
+    }
+
+    const whereClause = conditions.length ? `WHERE ${conditions.join(" AND ")}` : "";
+
+    // Total count query
+    const countQuery = `SELECT COUNT(*) AS total FROM jobs ${whereClause};`;
+    const countResult = await pool.query(countQuery, values);
+    const total = parseInt(countResult.rows[0].total, 10);
+
+    // Data query with pagination
+    const dataQuery = `
+      SELECT * FROM jobs
+      ${whereClause}
+      ORDER BY created_at DESC
+      OFFSET $${i} LIMIT $${i + 1};
+    `;
+    values.push(offset, limit);
+    const result = await pool.query(dataQuery, values);
+
+    return { jobs: result.rows, total };
   },
 
   getById: async (id) => {
@@ -76,9 +119,6 @@ const JobsRepository = {
     return result.rows[0];
   },
 
-  /**
-   * Update only the provided fields of a job
-   */
   updatePartial: async (id, fields) => {
     const setClauses = [];
     const values = [];
@@ -90,7 +130,7 @@ const JobsRepository = {
       i++;
     }
 
-    if (setClauses.length === 0) return null;
+    if (!setClauses.length) return null;
 
     const query = `
       UPDATE jobs
