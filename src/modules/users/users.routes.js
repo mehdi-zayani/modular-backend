@@ -4,17 +4,43 @@ const UsersController = require("./users.controller");
 const authMiddleware = require("../auth/auth.middleware");
 
 /**
- * Users routes
- * Protected by JWT and role-based access control
+ * -------------------------
+ * Users Routes
+ * -------------------------
+ * All routes are protected by JWT and role-based access control.
+ * Roles allowed: ADMIN, USER
  */
 
-// ADMIN only: list all users
-router.get("/", authMiddleware(["ADMIN"]), UsersController.getAllUsers);
+/**
+ * GET /users
+ * ADMIN only: list all users
+ */
+router.get(
+  "/",
+  authMiddleware(["ADMIN"]),
+  UsersController.getAllUsers
+);
 
-// ADMIN or owner: update user
-router.patch("/:id", authMiddleware(["ADMIN", "USER"]), UsersController.patchUser);
+/**
+ * PATCH /users/:id
+ * ADMIN can update any user
+ * USER can update their own profile only
+ */
+router.patch(
+  "/:id",
+  authMiddleware(["ADMIN", "USER"]),
+  UsersController.patchUser
+);
 
-// ADMIN or owner: deactivate/delete user
-router.delete("/:id", authMiddleware(["ADMIN", "USER"]), UsersController.deleteUser);
+/**
+ * DELETE /users/:id
+ * ADMIN can delete any user
+ * USER can deactivate their own account only
+ */
+router.delete(
+  "/:id",
+  authMiddleware(["ADMIN", "USER"]),
+  UsersController.deleteUser
+);
 
 module.exports = router;

@@ -3,22 +3,61 @@ const router = express.Router();
 const AdminController = require("./admin.controller");
 const authMiddleware = require("../../middleware/auth.middleware");
 
-// User & job stats 
-router.get("/stats/users", authMiddleware(["ADMIN"]), AdminController.getUserStats);
-router.get("/stats/jobs", authMiddleware(["ADMIN"]), AdminController.getJobStats);
-router.get("/stats/jobs/type", authMiddleware(["ADMIN"]), AdminController.getJobStatsByType);
+/**
+ * -------------------------
+ * Admin Stats Endpoints
+ * -------------------------
+ */
+router.get(
+  "/stats/users",
+  authMiddleware(["ADMIN"]),
+  AdminController.getUserStats
+);
 
-// --- Monitoring endpoints ---
-// Server uptime
-router.get("/monitor/uptime", authMiddleware(["ADMIN"]), AdminController.getServerUptime);
+router.get(
+  "/stats/jobs",
+  authMiddleware(["ADMIN"]),
+  AdminController.getJobStats
+);
 
-// Database health
-router.get("/monitor/db", authMiddleware(["ADMIN"]), AdminController.getDbHealth);
+router.get(
+  "/stats/jobs/type",
+  authMiddleware(["ADMIN"]),
+  AdminController.getJobStatsByType
+);
 
-// Recent logins
-router.get("/monitor/recent-logins", authMiddleware(["ADMIN"]), AdminController.getRecentLogins);
+/**
+ * -------------------------
+ * Monitoring Endpoints
+ * -------------------------
+ */
+router.get(
+  "/monitor/uptime",
+  authMiddleware(["ADMIN"]),
+  AdminController.getServerUptime
+);
 
-// Logs endpoint (admin only)
-router.get("/logs", authMiddleware(["ADMIN"]), AdminController.getRequestLogs);
+router.get(
+  "/monitor/db",
+  authMiddleware(["ADMIN"]),
+  AdminController.getDbHealth
+);
+
+router.get(
+  "/monitor/recent-logins",
+  authMiddleware(["ADMIN"]),
+  AdminController.getRecentLogins
+);
+
+/**
+ * -------------------------
+ * Request Logs (Audit Trail)
+ * -------------------------
+ */
+router.get(
+  "/logs",
+  authMiddleware(["ADMIN"]),
+  AdminController.getRequestLogs
+);
 
 module.exports = router;
