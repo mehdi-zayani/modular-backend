@@ -6,6 +6,7 @@ const { NotFoundError } = require("./errors");
 const authRoutes = require("./modules/auth/auth.routes");
 const adminRoutes = require("./modules/admin/admin.routes");
 const usersRoutes = require("./modules/users/users.routes");
+const healthRoutes = require("./modules/health/health.routes");
 const requestLogger = require("./middleware/requestLogger.middleware");
 const loggingMiddleware = require("./middleware/logging.middleware");
 const app = express();
@@ -32,6 +33,8 @@ app.use("/jobs", jobsRoutes);
 app.get("/", (req, res) => {
   res.send("Modular Backend running");
 });
+// Public health check
+app.use("/health", healthRoutes);
 
 // 404 handler (doit être en dernier)
 app.use((req, res, next) => {
