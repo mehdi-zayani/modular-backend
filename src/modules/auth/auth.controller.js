@@ -1,6 +1,7 @@
 const UsersService = require("../users/users.service");
 const jwt = require("jsonwebtoken");
 const config = require("../../config/env");
+const ROLES = require("../../constants/roles");
 
 /**
  * Auth controller
@@ -16,7 +17,7 @@ const AuthController = {
       }
 
       const user = await UsersService.createUser({ email, password, full_name, role });
-      res.status(201).json({ id: user.id, email: user.email, full_name: user.full_name, role: user.role });
+      res.status(201).json({ id: user.id, email: user.email, full_name: user.full_name, role: ROLES.USER });
     } catch (err) {
       next(err);
     }
