@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const UsersController = require("./users.controller");
-const authMiddleware = require("../auth/auth.middleware");
+const authMiddleware = require("../../middleware/auth.middleware");
 
 /**
  * -------------------------
@@ -34,13 +34,23 @@ router.patch(
 
 /**
  * DELETE /users/:id
- * ADMIN can delete any user
+ * ADMIN can deactivate any user
  * USER can deactivate their own account only
  */
 router.delete(
   "/:id",
   authMiddleware(["ADMIN", "USER"]),
   UsersController.deleteUser
+);
+
+/**
+ * POST /users/:id/role
+ * ADMIN only: promote or demote user role
+ */
+router.post(
+  "/:id/role",
+  authMiddleware(["ADMIN"]),
+  UsersController.changeUserRole
 );
 
 module.exports = router;

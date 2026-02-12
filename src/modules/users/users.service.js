@@ -4,29 +4,32 @@ const pool = require("../../db/db");
 const ROLES = require("../../constants/roles");
 
 /**
- * Users service: business logic for user management
+ * UsersService: business logic for user management
  */
 const UsersService = {
   /**
    * Create a new user with hashed password
+   * @param {Object} data - user data (email, full_name, password, role)
+   * @returns {Object} created user
    */
   async createUser(data) {
-  const hashedPassword = await bcrypt.hash(data.password, 10);
+    const hashedPassword = await bcrypt.hash(data.password, 10);
 
-  const role = Object.values(ROLES).includes(data.role)
-    ? data.role
-    : ROLES.USER;
+    const role = Object.values(ROLES).includes(data.role)
+      ? data.role
+      : ROLES.USER;
 
-  return UsersModel.create({
-    ...data,
-    role,
-    password: hashedPassword,
-  });
-}
-,
+    return UsersModel.create({
+      ...data,
+      role,
+      password: hashedPassword,
+    });
+  },
 
   /**
    * Retrieve user by email
+   * @param {string} email
+   * @returns {Object|null} user
    */
   async getUserByEmail(email) {
     return UsersModel.findByEmail(email);
@@ -34,6 +37,8 @@ const UsersService = {
 
   /**
    * Retrieve user by ID
+   * @param {number} id
+   * @returns {Object|null} user
    */
   async getUserById(id) {
     return UsersModel.findById(id);
@@ -41,6 +46,7 @@ const UsersService = {
 
   /**
    * Retrieve all users (admin only)
+   * @returns {Array<Object>} list of users
    */
   async getAllUsers() {
     const query = `
@@ -53,16 +59,14 @@ const UsersService = {
 
   /**
    * Update user fields (PATCH)
-   */
-  /**
-   * Update user fields (PATCH)
-   * Role cannot be modified here (admin endpoint required)
+   * Role cannot be modified here (use promote/demote endpoint)
+   * @param {number} id
+   * @param {Object} data - fields to update
+   * @returns {Object|null} updated user
    */
   async updateUser(id, data) {
     // Prevent role change via normal update
-    if (data.role) {
-      delete data.role;
-    }
+    if (data.role) delete data.role;
 
     // Hash password if present
     if (data.password) {
@@ -90,16 +94,38 @@ const UsersService = {
       WHERE id = $${i}
       RETURNING id, email, full_name, role, is_active, created_at, updated_at
     `;
-
     values.push(id);
 
     const res = await UsersModel.query(query, values);
     return res.rows[0];
   },
 
+  /**
+   * Promote or demote user role (ADMIN only)
+   * @param {number} id
+   * @param {string} newRole - role from ROLES
+   * @returns {Object|null} updated user
+   */
+  async changeUserRole(id, newRole) {
+    if (!Object.values(ROLES).includes(newRole)) {
+      throw new Error("Invalid role");
+    }
+
+    const query = `
+      UPDATE users
+      SET role = $1,
+          updated_at = NOW()
+      WHERE id = $2
+      RETURNING id, email, full_name, role, is_active, created_at, updated_at
+    `;
+    const res = await UsersModel.query(query, [newRole, id]);
+    return res.rows[0];
+  },
 
   /**
    * Soft delete (deactivate user)
+   * @param {number} id
+   * @returns {Object} deactivated user
    */
   async deactivateUser(id) {
     return UsersModel.deactivate(id);
@@ -107,6 +133,7 @@ const UsersService = {
 
   /**
    * Track last login timestamp
+   * @param {number} id
    */
   async updateLastLogin(id) {
     return UsersModel.updateLastLogin(id);
@@ -114,6 +141,9 @@ const UsersService = {
 
   /**
    * Validate plain password with hashed password
+   * @param {Object} user
+   * @param {string} password
+   * @returns {boolean}
    */
   async validatePassword(user, password) {
     return bcrypt.compare(password, user.password);
@@ -121,6 +151,7 @@ const UsersService = {
 
   /**
    * Count total number of users
+   * @returns {number}
    */
   async countUsers() {
     const result = await pool.query("SELECT COUNT(*) FROM users");
@@ -129,16 +160,19 @@ const UsersService = {
 
   /**
    * Count number of users grouped by role
+   * @returns {Array<{role: string, count: number}>}
    */
   async countUsersByRole() {
     const result = await pool.query(
       "SELECT role, COUNT(*) AS count FROM users GROUP BY role"
     );
-    return result.rows; // [{role: 'ADMIN', count: 2}, {role: 'USER', count: 10}, ...]
+    return result.rows;
   },
 
   /**
    * Get last N user logins
+   * @param {number} limit
+   * @returns {Array<Object>}
    */
   async getRecentLogins(limit = 10) {
     const result = await pool.query(
